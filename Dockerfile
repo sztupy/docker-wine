@@ -54,7 +54,7 @@ RUN apt-get update && \
 # Clone and build box64
 RUN git clone https://github.com/ptitSeb/box64.git /tmp/box64
 WORKDIR /tmp/box64/build
-RUN cmake .. -DRPI4ARM64=1 -DARM_DYNAREC=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo && \
+RUN cmake .. -DBOX32=ON -DRPI4ARM64=1 -DARM_DYNAREC=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo && \
     make -j"$(nproc)" && \
     make install DESTDIR=/tmp/install
 
@@ -71,7 +71,7 @@ RUN wget -nv -O- https://dl.winehq.org/wine-builds/winehq.key | APT_KEY_DONT_WAR
     && echo deb [arch=amd64,i386] http://security.ubuntu.com/ubuntu noble-security main restricted universe multiverse >> /etc/apt/sources.list.d/amd64.list \
     && echo deb [arch=amd64,i386] http://archive.ubuntu.com/ubuntu noble-backports main restricted universe multiverse >> /etc/apt/sources.list.d/amd64.list \
     && apt-get update \
-    && DEBIAN_FRONTEND="noninteractive" apt-get install -f -y --install-recommends winehq-${WINE_BRANCH} \
+    && DEBIAN_FRONTEND="noninteractive" apt-get install -f -y --install-recommends wine-stable-amd64=10.0.0.0~noble-1 wine-stable-i386=10.0.0.0~noble-1  wine-stable=10.0.0.0~noble-1 winehq-${WINE_BRANCH}=10.0.0.0~noble-1 \
     && rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder-arm64 /tmp/install/ /
@@ -94,7 +94,7 @@ RUN echo "Creating wrappers for wine binaries . . ." && \
     echo "export BOX64_NOBANNER=1" >> "/usr/bin/${bin}" && \
     echo "export BOX64_BASH=/usr/local/bin/box64-bash" >> "/usr/bin/${bin}" && \
     echo "export LD_LIBRARY_PATH=/usr/lib/box64-x86_64-linux-gnu:\$LD_LIBRARY_PATH" >> "/usr/bin/${bin}" && \
-    echo "export WINEARCH=\${WINEARCH:-wow64}" >> "/usr/bin/${bin}" && \
+    echo "export WINEARCH=\${WINEARCH:-win32}" >> "/usr/bin/${bin}" && \
     echo "export WINE_BINDIR=/opt/wine-${WINE_BRANCH}/bin" >> "/usr/bin/${bin}" && \
     echo "exec /bin/bash -c \"/usr/local/bin/box64 /opt/wine-${WINE_BRANCH}/bin/${bin} \\\"\\\$@\\\"\" -- \"\$@\"" >> "/usr/bin/${bin}" && \
     chmod +x "/usr/bin/${bin}"; \
